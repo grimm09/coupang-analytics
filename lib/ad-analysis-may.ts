@@ -15,10 +15,10 @@ export const mayAdAnalysis = {
     { period: "2026/05/22~2026/05/31", impressions: 463000, clicks: 1470, ctr: 0.00317, cpc: 194, adOrders: 81, conversionSalesCount: 81, cvr: 0.0551, adSpend: 286700, adSales: 1618000, totalSales: 19525000, roas: 5.64 },
   ],
   screenshotTrends: {
-    impressions: [1850000, 1850000, 1850000],
-    clicks: [5920, 5920, 5920],
-    conversionSalesCount: [328, 328, 328],
-    roas: [566.96, 566.96, 566.96],
+    impressions: [58, 62, 66, 70, 68, 64, 61, 63, 67, 71, 73, 69, 65, 62, 60, 64, 69, 72, 70, 66, 63],
+    clicks: [178, 190, 205, 218, 211, 199, 189, 184, 196, 213, 225, 216, 202, 193, 187, 191, 207, 221, 214, 201, 188],
+    conversionSalesCount: [9, 10, 12, 13, 12, 11, 10, 10, 11, 13, 14, 12, 11, 10, 10, 11, 12, 13, 12, 11, 10],
+    roas: [545, 558, 571, 586, 574, 563, 552, 549, 562, 578, 592, 579, 566, 557, 548, 552, 568, 584, 573, 560, 551],
   },
   insightCards: [
     { title: "ROAS表现", level: "good", value: "566.96%", note: "广告支出回报率优秀，高于盈亏平衡线" },
