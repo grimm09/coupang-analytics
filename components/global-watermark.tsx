@@ -1,5 +1,5 @@
 const WATERMARK_CONFIG = {
-  text: "[https://grimm09.github.io/coupang-analytics/]",
+  text: "[confidential-FJY]",
   color: "#1f2937",
   opacity: 0.13,
   tileWidth: 420,
