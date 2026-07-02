@@ -1265,7 +1265,7 @@ function CategoryAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: Mo
       }],
       graphic: [
         { type: "text", right: 18, top: 16, style: { text: "⚠ 重点关注", fill: "#E74C3C", fontSize: 12, fontWeight: 700 } },
-        { type: "text", right: 18, bottom: 18, style: { text: "✅ 健康", fill: "#2ECC71", fontSize: 12, fontWeight: 700 } },
+        { type: "text", right: 18, bottom: 58, style: { text: "✅ 健康", fill: "#2ECC71", fontSize: 12, fontWeight: 700 } },
       ],
     };
   }, [categories]);
