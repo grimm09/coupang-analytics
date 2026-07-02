@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const COOKIE_NAME = "coupang_dashboard_auth";
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 async function createAuthToken(user: string, password: string) {
   const input = `${user}:${password}`;
@@ -218,12 +219,37 @@ export async function middleware(request: NextRequest) {
   const currentToken = request.cookies.get(COOKIE_NAME)?.value;
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/auth") {
+  if (currentToken === expectedToken && pathname !== "/auth") {
     return NextResponse.next();
   }
 
-  if (currentToken === expectedToken && pathname !== "/auth") {
-    return NextResponse.next();
+  if (pathname === "/auth" && request.method === "POST") {
+    const formData = await request.formData();
+    const submittedUser = String(formData.get("username") ?? "");
+    const submittedPassword = String(formData.get("password") ?? "");
+
+    if (
+      submittedUser === expectedUser &&
+      submittedPassword === expectedPassword
+    ) {
+      const response = NextResponse.redirect(new URL("/", request.url));
+
+      response.cookies.set(COOKIE_NAME, expectedToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: COOKIE_MAX_AGE_SECONDS,
+      });
+
+      return response;
+    }
+
+    return NextResponse.redirect(new URL("/?auth=failed", request.url));
+  }
+
+  if (pathname === "/auth") {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   if (request.nextUrl.searchParams.get("auth") === "failed") {
