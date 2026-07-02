@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import GlobalWatermark from "@/components/global-watermark";
 import "./globals.css";
 import "./logo-fix.css";
+import "./watermark.css";
 
 export const metadata: Metadata = {
   title: "Coupang 经营分析",
@@ -10,7 +12,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        {children}
+        <GlobalWatermark />
+      </body>
     </html>
   );
 }
