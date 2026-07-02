@@ -1,0 +1,11 @@
+.global-watermark {
+  position: fixed;
+  inset: 0;
+  z-index: var(--watermark-z-index, 999999);
+  pointer-events: none;
+  user-select: none;
+  opacity: var(--watermark-opacity, 0.13);
+  background-repeat: repeat;
+  background-size: var(--watermark-width, 420px) var(--watermark-height, 220px);
+  overflow: hidden;
+}
