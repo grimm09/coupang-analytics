@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const COOKIE_NAME = "coupang_dashboard_auth";
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 async function createAuthToken(user: string, password: string) {
   const input = `${user}:${password}`;
@@ -171,7 +170,7 @@ function renderLoginPage(errorMessage = "") {
       </div>
       <h1>访问验证</h1>
       <p class="desc">请输入访问凭证。验证通过后才会加载网站数据和水印层。</p>
-      <form method="post" action="/__auth">
+      <form method="post" action="/auth">
         <label for="username">用户名</label>
         <input id="username" name="username" autocomplete="username" required autofocus />
         <label for="password">密码</label>
@@ -219,38 +218,16 @@ export async function middleware(request: NextRequest) {
   const currentToken = request.cookies.get(COOKIE_NAME)?.value;
   const { pathname } = request.nextUrl;
 
-  if (currentToken === expectedToken && pathname !== "/__auth") {
+  if (pathname === "/auth") {
     return NextResponse.next();
   }
 
-  if (pathname === "/__auth" && request.method === "POST") {
-    const formData = await request.formData();
-    const submittedUser = String(formData.get("username") ?? "");
-    const submittedPassword = String(formData.get("password") ?? "");
-
-    if (
-      submittedUser === expectedUser &&
-      submittedPassword === expectedPassword
-    ) {
-      const redirectUrl = new URL("/", request.url);
-      const response = NextResponse.redirect(redirectUrl);
-
-      response.cookies.set(COOKIE_NAME, expectedToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: COOKIE_MAX_AGE_SECONDS,
-      });
-
-      return response;
-    }
-
-    return renderLoginPage("密码错误，请检查用户名和密码。");
+  if (currentToken === expectedToken && pathname !== "/auth") {
+    return NextResponse.next();
   }
 
-  if (pathname === "/__auth") {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (request.nextUrl.searchParams.get("auth") === "failed") {
+    return renderLoginPage("密码错误，请检查用户名和密码。");
   }
 
   return renderLoginPage();
