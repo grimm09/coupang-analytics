@@ -1,0 +1,4 @@
+/* Hotfix: move the Category Analysis health label away from x-axis text. */
+.category-chart-grid .category-chart-card:nth-child(4){position:relative}
+.category-chart-grid .category-chart-card:nth-child(4)::before{content:"";position:absolute;right:8px;bottom:10px;width:86px;height:34px;background:#fff;z-index:2;pointer-events:none}
+.category-chart-grid .category-chart-card:nth-child(4)::after{content:"✅ 健康";position:absolute;right:18px;bottom:58px;color:#2ECC71;font-size:12px;font-weight:700;z-index:3;pointer-events:none}
