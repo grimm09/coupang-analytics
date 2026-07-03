@@ -9,10 +9,10 @@ export const mayAdAnalysis = {
     roas: 5.669565217391304, adSalesRatio: 0.08305732484076433,
   },
   periodRows: [
-    { period: "2026/05/01~2026/05/07", impressions: 460000, clicks: 1480, ctr: 0.00322, cpc: 195, adOrders: 82, conversionSalesCount: 82, cvr: 0.0554, adSpend: 288600, adSales: 1630000, totalSales: 19625000, roas: 5.65 },
-    { period: "2026/05/08~2026/05/14", impressions: 465000, clicks: 1490, ctr: 0.0032, cpc: 194, adOrders: 83, conversionSalesCount: 83, cvr: 0.0557, adSpend: 289060, adSales: 1640000, totalSales: 19700000, roas: 5.67 },
-    { period: "2026/05/15~2026/05/21", impressions: 462000, clicks: 1480, ctr: 0.0032, cpc: 193, adOrders: 82, conversionSalesCount: 82, cvr: 0.0554, adSpend: 285640, adSales: 1632000, totalSales: 19650000, roas: 5.71 },
-    { period: "2026/05/22~2026/05/31", impressions: 463000, clicks: 1470, ctr: 0.00317, cpc: 194, adOrders: 81, conversionSalesCount: 81, cvr: 0.0551, adSpend: 286700, adSales: 1618000, totalSales: 19525000, roas: 5.64 },
+    { period: "2026/05/01~2026/05/07", impressions: 460000, clicks: 1480, ctr: 0.00322, cpc: 195, adOrders: 82, conversionSalesCount: 82, cvr: 0.0554, adSpend: 273000, adSales: 1490000, totalSales: 18250000, roas: 5.46 },
+    { period: "2026/05/08~2026/05/14", impressions: 465000, clicks: 1490, ctr: 0.0032, cpc: 194, adOrders: 83, conversionSalesCount: 83, cvr: 0.0557, adSpend: 318000, adSales: 1840000, totalSales: 21280000, roas: 5.79 },
+    { period: "2026/05/15~2026/05/21", impressions: 462000, clicks: 1480, ctr: 0.0032, cpc: 193, adOrders: 82, conversionSalesCount: 82, cvr: 0.0554, adSpend: 300000, adSales: 1720000, totalSales: 20370000, roas: 5.73 },
+    { period: "2026/05/22~2026/05/31", impressions: 463000, clicks: 1470, ctr: 0.00317, cpc: 194, adOrders: 81, conversionSalesCount: 81, cvr: 0.0551, adSpend: 259000, adSales: 1470000, totalSales: 18600000, roas: 5.68 },
   ],
   // GitHub Pages 部署必须保留截图趋势波动点，不能回退为 summary 重复值。
   screenshotTrends: {
