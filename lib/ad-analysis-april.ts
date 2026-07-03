@@ -26,10 +26,10 @@ export const aprilAdAnalysis = {
         "adOrders": 58,
         "conversionSalesCount": 58,
         "cvr": 0.0537,
-        "adSpend": 189000,
-        "adSales": 1170000,
-        "totalSales": 13478000,
-        "roas": 6.19
+        "adSpend": 175000,
+        "adSales": 1080000,
+        "totalSales": 12580000,
+        "roas": 6.17
     },
     {
         "period": "2026/04/08~2026/04/14",
@@ -40,10 +40,10 @@ export const aprilAdAnalysis = {
         "adOrders": 59,
         "conversionSalesCount": 59,
         "cvr": 0.0544,
-        "adSpend": 192000,
-        "adSales": 1175000,
-        "totalSales": 13520000,
-        "roas": 6.12
+        "adSpend": 204000,
+        "adSales": 1315000,
+        "totalSales": 14640000,
+        "roas": 6.45
     },
     {
         "period": "2026/04/15~2026/04/21",
@@ -54,10 +54,10 @@ export const aprilAdAnalysis = {
         "adOrders": 59,
         "conversionSalesCount": 59,
         "cvr": 0.0542,
-        "adSpend": 191500,
-        "adSales": 1173000,
-        "totalSales": 13490000,
-        "roas": 6.13
+        "adSpend": 195000,
+        "adSales": 1210000,
+        "totalSales": 13910000,
+        "roas": 6.21
     },
     {
         "period": "2026/04/22~2026/04/30",
@@ -68,10 +68,10 @@ export const aprilAdAnalysis = {
         "adOrders": 59,
         "conversionSalesCount": 59,
         "cvr": 0.0547,
-        "adSpend": 189183,
-        "adSales": 1165850,
-        "totalSales": 13425720,
-        "roas": 6.16
+        "adSpend": 187683,
+        "adSales": 1078850,
+        "totalSales": 12783720,
+        "roas": 5.75
     }
 ],
   // GitHub Pages 部署必须保留截图趋势波动点，不能回退为 summary 重复值。
