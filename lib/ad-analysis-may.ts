@@ -14,6 +14,7 @@ export const mayAdAnalysis = {
     { period: "2026/05/15~2026/05/21", impressions: 462000, clicks: 1480, ctr: 0.0032, cpc: 193, adOrders: 82, conversionSalesCount: 82, cvr: 0.0554, adSpend: 285640, adSales: 1632000, totalSales: 19650000, roas: 5.71 },
     { period: "2026/05/22~2026/05/31", impressions: 463000, clicks: 1470, ctr: 0.00317, cpc: 194, adOrders: 81, conversionSalesCount: 81, cvr: 0.0551, adSpend: 286700, adSales: 1618000, totalSales: 19525000, roas: 5.64 },
   ],
+  // GitHub Pages 部署必须保留截图趋势波动点，不能回退为 summary 重复值。
   screenshotTrends: {
     impressions: [58, 62, 66, 70, 68, 64, 61, 63, 67, 71, 73, 69, 65, 62, 60, 64, 69, 72, 70, 66, 63],
     clicks: [178, 190, 205, 218, 211, 199, 189, 184, 196, 213, 225, 216, 202, 193, 187, 191, 207, 221, 214, 201, 188],
