@@ -37,6 +37,9 @@ jobs:
       - name: Apply June dashboard patch
         run: node scripts/apply-june-dashboard-patch.cjs
 
+      - name: Apply June ad dashboard patch
+        run: node scripts/apply-june-ad-dashboard-patch.cjs
+
       - name: Build static site
         run: npm run build
 
