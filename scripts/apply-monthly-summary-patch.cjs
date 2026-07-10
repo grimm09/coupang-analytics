@@ -27,48 +27,79 @@ dashboard = replaceOnce(
 if (!dashboard.includes('className="content-canvas monthly-summary-canvas"')) {
   const marker = 'function ReportCenterPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey; monthLabel: string }) {\n';
   const replacement = `function ReportCenterPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey; monthLabel: string }) {
-  const summaryCards = [
-    { label: "展示范围", value: "2026年6月", note: "仅保留本月经营总结" },
-    { label: "展示形式", value: "一页纸复盘", note: "适合汇报、归档、快速审核" },
-    { label: "模块状态", value: "月度总结", note: "已替换原报告中心" },
+  const metricCards = [
+    { label: "有效订单", value: "3,727" },
+    { label: "收入", value: "¥365,229" },
+    { label: "毛利润", value: "¥94,622" },
+    { label: "毛利率", value: "25.9%" },
+    { label: "退损率", value: "9.1%" },
   ];
 
   return (
     <div className="content-canvas monthly-summary-canvas">
-      <section className="monthly-summary-hero">
-        <div>
-          <span className="summary-eyebrow">月度总结 · 2026年6月</span>
-          <h2>樊锦栎 6月经营总结一页纸</h2>
-          <p>当前入口已从“报告中心”调整为“月度总结”；页面只展示 6 月经营总结，不再展示其他月份报告中心内容。</p>
-        </div>
-        <div className="summary-actions">
-          <span>JUNE SUMMARY</span>
-        </div>
-      </section>
+      <section className="summary-paper">
+        <header className="summary-paper-header">
+          <div>
+            <h2><span>樊锦栎</span><em />2026年6月经营总结</h2>
+            <p>一页纸管理摘要｜明细数据与趋势请结合线上数据网站查看</p>
+          </div>
+          <span className="summary-month-pill">2026.06</span>
+        </header>
 
-      <section className="monthly-summary-panel">
-        <div className="summary-card-grid">
-          {summaryCards.map((item) => (
-            <article key={item.label} className="summary-status-card">
+        <div className="summary-metric-grid">
+          {metricCards.map((item) => (
+            <article key={item.label}>
               <span>{item.label}</span>
               <strong>{item.value}</strong>
-              <p>{item.note}</p>
             </article>
           ))}
         </div>
-        <div className="summary-paper-placeholder">
-          <div className="summary-paper-topline">
-            <span>月度总结</span>
-            <b>2026.06</b>
-          </div>
-          <h3>6月经营总结一页纸</h3>
-          <p>这里用于承载最终版一页纸总结。当前版本已完成模块替换与导航命名，后续可继续接入 PDF 原稿预览/下载。</p>
-          <div className="summary-paper-blocks">
-            <div><b>经营表现</b><span>聚焦销售、订单、利润与退损复盘</span></div>
-            <div><b>广告表现</b><span>聚焦三店铺广告投入、销售与 ROAS</span></div>
-            <div><b>优化方向</b><span>保留高效策略，定位需要调整的投放与产品</span></div>
-          </div>
-        </div>
+
+        <section className="summary-progress-row">
+          <h3>7月销售目标进度</h3>
+          <div className="summary-progress-copy">已完成 ¥83,494 / 目标 ¥520,000 完成 16.1%</div>
+          <div className="summary-progress-track"><span /></div>
+        </section>
+
+        <section className="summary-judgement-grid">
+          <article className="summary-judgement good">
+            <h3>总体判断</h3>
+            <p>6月整体经营质量较好：毛利率25.9%，高于平台整体20.7%；但退损率9.1%，高于平台整体7.2%，利润优势仍需通过降低退损来巩固。收入排名约第16名，当前重点不是继续铺开明细，而是集中资源提升有效SKU和投放效率。</p>
+          </article>
+          <article className="summary-judgement note">
+            <h3>一句话结论</h3>
+            <p>保持高毛利和高ROAS项目，压降退损与负毛利SKU，把增长从“扩大数量”转向“提高质量”。</p>
+          </article>
+        </section>
+
+        <section className="summary-action-grid">
+          <article className="keep">
+            <h3>需要保持</h3>
+            <ul>
+              <li>跨境329广告ROAS约691%，保持高效活动。</li>
+              <li>居家百货收入占比约51%，退损率仅6.0%。</li>
+              <li>保持整体毛利率优势，新品继续执行毛利率+退损率双筛选。</li>
+            </ul>
+          </article>
+          <article className="optimize">
+            <h3>需要优化</h3>
+            <ul>
+              <li>本土70优先扩大高毛利清洁类成熟SKU。</li>
+              <li>本土88减少预算分散，集中到高转化活动。</li>
+              <li>跨境296/295订单量偏低，先做SKU与流量整合。</li>
+            </ul>
+          </article>
+          <article className="improve">
+            <h3>需要改进</h3>
+            <ul>
+              <li>电子电器退损率12.6%，排查质量、包装与售后。</li>
+              <li>服饰退损率14.8%，优化尺码表和主图预期管理。</li>
+              <li>36个负毛利产品先处理，再决定是否继续扩量。</li>
+            </ul>
+          </article>
+        </section>
+
+        <footer className="summary-paper-footer">7月优先级：①降低退损率 ②清理负毛利SKU ③集中广告预算 ④在验证盈利后再扩大规模。广告数据依据6月广告截图汇总。</footer>
       </section>
     </div>
   );
@@ -83,27 +114,48 @@ let css = fs.readFileSync(cssPath, "utf8");
 if (!css.includes(".monthly-summary-canvas")) {
   css += `
 
-.monthly-summary-canvas { min-height: calc(100vh - 132px); display: grid; grid-template-rows: auto 1fr; gap: 16px; padding: 16px; background: linear-gradient(135deg, #f8f8ff 0%, #ffffff 48%, #f3f0ff 100%); border: 1px solid #ecebfb; }
-.monthly-summary-hero { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 22px 24px; border: 1px solid #ded9ff; border-radius: 22px; background: linear-gradient(135deg, #f3efff, #eef8ff); box-shadow: 0 10px 28px rgba(71,65,120,.06); }
-.summary-eyebrow { display: inline-flex; margin-bottom: 10px; padding: 6px 12px; border-radius: 999px; background: rgba(118,85,246,.12); color: #5d3cda; font-size: 12px; font-weight: 950; }
-.monthly-summary-hero h2 { margin: 0; color: #11162c; font-size: clamp(27px, 2.5vw, 38px); line-height: 1.05; font-weight: 950; letter-spacing: -.055em; }
-.monthly-summary-hero p { max-width: 760px; margin: 10px 0 0; color: #676d82; font-size: 14px; line-height: 1.55; font-weight: 750; }
-.summary-actions span { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 15px; border-radius: 12px; color: #fff; background: linear-gradient(135deg, #7655f6, #6044db); font-size: 12px; font-weight: 950; box-shadow: 0 12px 24px rgba(118,85,246,.22); }
-.monthly-summary-panel { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-height: 650px; padding: 14px; border: 1px solid #e3e2ee; border-radius: 22px; background: rgba(255,255,255,.92); box-shadow: 0 10px 28px rgba(71,65,120,.055); }
-.summary-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.summary-status-card { padding: 18px; border: 1px solid #e5e2f5; border-radius: 18px; background: #fff; }
-.summary-status-card span { color: #7a7f93; font-size: 12px; font-weight: 850; }
-.summary-status-card strong { display: block; margin-top: 8px; color: #171a30; font-size: 24px; font-weight: 950; letter-spacing: -.04em; }
-.summary-status-card p { margin: 8px 0 0; color: #74798c; font-size: 13px; font-weight: 750; }
-.summary-paper-placeholder { min-height: 520px; padding: clamp(26px, 4vw, 46px); border: 1px solid #e1def5; border-radius: 18px; background: linear-gradient(135deg, #ffffff 0%, #fbfaff 100%); display: flex; flex-direction: column; justify-content: center; }
-.summary-paper-topline { display: flex; justify-content: space-between; align-items: center; color: #7655f6; font-size: 13px; font-weight: 950; letter-spacing: .08em; text-transform: uppercase; }
-.summary-paper-placeholder h3 { margin: 26px 0 12px; color: #11162c; font-size: clamp(34px, 4vw, 58px); line-height: 1; font-weight: 950; letter-spacing: -.06em; }
-.summary-paper-placeholder > p { max-width: 760px; margin: 0; color: #666c82; font-size: clamp(15px, 1.45vw, 18px); line-height: 1.7; font-weight: 750; }
-.summary-paper-blocks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 42px; }
-.summary-paper-blocks div { padding: 18px; border-radius: 18px; background: #f4f1ff; border: 1px solid #dfd8ff; }
-.summary-paper-blocks b { display: block; color: #4e36c7; font-size: 16px; font-weight: 950; }
-.summary-paper-blocks span { display: block; margin-top: 8px; color: #62677b; font-size: 13px; line-height: 1.5; font-weight: 780; }
-@media (max-width: 900px) { .monthly-summary-hero { align-items: flex-start; flex-direction: column; } .summary-card-grid, .summary-paper-blocks { grid-template-columns: 1fr; } }
+.monthly-summary-canvas { min-height: calc(100vh - 132px); padding: 18px; background: #f7f9fc; border: 1px solid #e8edf6; overflow: auto; }
+.summary-paper { max-width: 1440px; min-height: 850px; margin: 0 auto; padding: clamp(34px, 4vw, 58px); background: #ffffff; color: #1f2d3d; border-radius: 18px; box-shadow: 0 16px 45px rgba(31, 45, 61, .08); border: 1px solid #d9e6f2; font-family: var(--font-geist-sans), "Microsoft YaHei", Arial, sans-serif; }
+.summary-paper-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
+.summary-paper-header h2 { display: flex; align-items: baseline; gap: 18px; margin: 0; color: #214f7b; font-size: clamp(30px, 3.15vw, 44px); line-height: 1.08; font-weight: 500; letter-spacing: -.035em; }
+.summary-paper-header h2 span { font-weight: 600; }
+.summary-paper-header h2 em { width: 1px; height: .82em; background: #214f7b; display: inline-block; transform: translateY(5px); }
+.summary-paper-header p { margin: 6px 0 0; color: #5e6d82; font-size: clamp(13px, 1.05vw, 16px); font-weight: 600; }
+.summary-month-pill { flex: 0 0 auto; padding: 8px 14px; border: 1px solid #aac5dc; border-radius: 999px; color: #214f7b; background: #eef6fd; font-size: 13px; font-weight: 900; }
+.summary-metric-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1.5px solid #214f7b; background: #d7e7f4; margin-bottom: 28px; }
+.summary-metric-grid article { min-height: 82px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid rgba(33, 79, 123, .55); }
+.summary-metric-grid article:last-child { border-right: 0; }
+.summary-metric-grid span { color: #6a7787; font-size: clamp(13px, 1.05vw, 16px); font-weight: 700; }
+.summary-metric-grid strong { margin-top: 8px; color: #214f7b; font-size: clamp(26px, 2.15vw, 36px); line-height: 1; font-weight: 500; letter-spacing: -.03em; }
+.summary-progress-row { display: grid; grid-template-columns: 260px 1fr; align-items: center; column-gap: 48px; row-gap: 12px; margin: 0 auto 20px; max-width: 1260px; }
+.summary-progress-row h3 { margin: 0; color: #214f7b; font-size: clamp(20px, 1.65vw, 27px); font-weight: 700; }
+.summary-progress-copy { color: #1f2d3d; font-size: clamp(14px, 1.16vw, 18px); font-weight: 650; }
+.summary-progress-track { grid-column: 1 / -1; height: 36px; margin-left: 40px; border: 1.5px solid #214f7b; background: #e8eef4; }
+.summary-progress-track span { display: block; width: 16.1%; min-width: 168px; height: 100%; background: #214f7b; }
+.summary-judgement-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid #214f7b; margin: 18px auto 22px; max-width: 1260px; }
+.summary-judgement { min-height: 122px; padding: 22px 26px; }
+.summary-judgement.good { background: #e7f3de; border-right: 1px solid #214f7b; }
+.summary-judgement.note { background: #dcecf8; }
+.summary-judgement h3, .summary-action-grid h3 { margin: 0 0 10px; color: #395568; font-size: clamp(15px, 1.1vw, 18px); font-weight: 700; }
+.summary-judgement p { margin: 0; color: #263644; font-size: clamp(15px, 1.13vw, 18px); line-height: 1.72; font-weight: 650; }
+.summary-action-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1.5px solid #214f7b; max-width: 1260px; margin: 0 auto 18px; }
+.summary-action-grid article { min-height: 176px; padding: 22px 24px; border-right: 1px solid #214f7b; }
+.summary-action-grid article:last-child { border-right: 0; }
+.summary-action-grid .keep { background: #e6f2dc; }
+.summary-action-grid .optimize { background: #fde7d6; }
+.summary-action-grid .improve { background: #f5cdcf; }
+.summary-action-grid ul { margin: 0; padding-left: 18px; color: #273541; font-size: clamp(14px, 1.08vw, 17px); line-height: 1.65; font-weight: 700; }
+.summary-paper-footer { max-width: 1260px; margin: 0 auto; color: #6a7790; font-size: clamp(12px, .98vw, 15px); font-weight: 650; }
+@media (max-width: 980px) {
+  .summary-paper { padding: 24px; min-height: auto; }
+  .summary-paper-header, .summary-judgement-grid, .summary-action-grid { grid-template-columns: 1fr; flex-direction: column; }
+  .summary-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary-metric-grid article { border-bottom: 1px solid rgba(33, 79, 123, .45); }
+  .summary-progress-row { grid-template-columns: 1fr; row-gap: 10px; }
+  .summary-progress-track { margin-left: 0; }
+  .summary-judgement.good, .summary-action-grid article { border-right: 0; border-bottom: 1px solid #214f7b; }
+  .summary-action-grid article:last-child { border-bottom: 0; }
+}
 `;
 }
 
