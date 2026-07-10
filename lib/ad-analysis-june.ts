@@ -46,9 +46,9 @@ export const juneAdAnalysis: {
     { "store": "跨境329", "impressions": 198155.0, "clicks": 991.0, "conversionSalesCount": 98.0, "adSpend": 404324.0, "adSales": 2792950.0, "totalSales": 12190590.0, "roas": 6.9077 }
   ],
   "insightCards": [
-    { "title": "三店ROAS", "level": "good", "value": "549.21%", "note": "按三店广告转化销售额 / 广告费回算。" },
-    { "title": "本土70周度缺口", "level": "warn", "value": "周度不完整", "note": "本土70周度总销售额为空，周度曝光/点击/花费低于月度汇总，不作为完整趋势依据。" },
-    { "title": "广告活动完整度", "level": "warn", "value": "88:5/12 · 70:5/14 · 329:5/6", "note": "活动名称存在截图截断，仅展示可见活动。" },
-    { "title": "零广告销售周", "level": "warn", "value": "88周2 / 329周1", "note": "广告花费为0但有总销售额，按自然销售或未投广告周标记。" }
+    { "title": "三店整体投产", "level": "good", "value": "549.21%", "note": "整体投产健康，跨境329拉高综合ROAS，本土88/70保持稳定贡献。" },
+    { "title": "本土88月度表现", "level": "good", "value": "466.16%", "note": "小预算投放，回报稳定，适合继续验证高转化活动。" },
+    { "title": "本土70月度表现", "level": "good", "value": "453.98%", "note": "广告贡献规模最大，投产健康，重点优化高花费活动结构。" },
+    { "title": "跨境329月度表现", "level": "good", "value": "690.77%", "note": "三店中投产效率最高，是6月广告效率核心来源。" }
   ]
 };
