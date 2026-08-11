@@ -32,24 +32,43 @@ import {
   WalletCards,
 } from "lucide-react";
 import EChart from "./echart";
+import JulyAdAnalysisPage from "./july-ad-analysis";
+import JulyMonthComparison from "./july-month-comparison";
+import JulyMonthlySummary from "./july-monthly-summary";
 import { formatKrw, formatNumber, formatPercent } from "@/lib/format";
 import { januaryCustomerPriceCny, januaryOverview } from "@/lib/january";
 import { februaryCustomerPriceCny, februaryOverview } from "@/lib/february";
 import { marchCustomerPriceCny, marchOverview } from "@/lib/march";
 import { aprilCustomerPriceCny, aprilOverview } from "@/lib/april";
 import { mayCustomerPriceCny, mayOverview } from "@/lib/may";
+import { juneCustomerPriceCny, juneOverview } from "@/lib/june";
+import {
+  julyCustomerPriceCny,
+  julyOverview,
+  julyPersonnelRows,
+  julyPersonnelSummary,
+  julyStoreContributions,
+} from "@/lib/july";
 import { aprilProductAnalysis, februaryProductAnalysis, januaryProductAnalysis, marchProductAnalysis, mayProductAnalysis, type ProductAnalysisItem } from "@/lib/product-analysis";
+import { juneProductAnalysis } from "@/lib/product-analysis-june";
+import { julyProductAnalysis, type JulyProductRow } from "@/lib/product-analysis-july";
+import { julyCategoryAnalysis, julyCategoryRows } from "@/lib/category-analysis-july";
 import { categoryPalette, januaryCategoryAnalysis, type CategoryAnalysisItem } from "@/lib/category-analysis";
 import { februaryCategoryAnalysis } from "@/lib/category-analysis-february";
 import { marchCategoryAnalysis } from "@/lib/category-analysis-march";
 import { aprilCategoryAnalysis } from "@/lib/category-analysis-april";
 import { mayCategoryAnalysis } from "@/lib/category-analysis-may";
-import { adInsightCards, februaryAdAnalysis, januaryAdAnalysis, marchAdAnalysis } from "@/lib/ad-analysis";
+import { juneCategoryAnalysis } from "@/lib/category-analysis-june";
+import { adInsightCards, februaryAdAnalysis, januaryAdAnalysis, marchAdAnalysis, type AdPeriodRow } from "@/lib/ad-analysis";
 import { aprilAdAnalysis } from "@/lib/ad-analysis-april";
 import { mayAdAnalysis } from "@/lib/ad-analysis-may";
+import { juneAdAnalysis } from "@/lib/ad-analysis-june";
+import { julyAdHeader, type JulyAdStoreKey } from "@/lib/ad-analysis-july";
 import { monthCompare, monthCompareFebruary, monthCompareMarch, type MonthMetric } from "@/lib/month-compare";
 import { monthCompareApril } from "@/lib/month-compare-april";
 import { monthCompareMay } from "@/lib/month-compare-may";
+import { monthCompareJune } from "@/lib/month-compare-june";
+import { juneBusinessSummaryPdfBase64 } from "@/lib/june-summary-pdf";
 
 const navItems = [
   ["经营总览", ChartNoAxesCombined],
@@ -57,10 +76,10 @@ const navItems = [
   ["品类分析", Layers2],
   ["广告分析", Megaphone],
   ["月度对比", BarChart3],
-  ["报告中心", FileBarChart],
+  ["月度总结", FileBarChart],
 ] as const;
 
-type MonthKey = "2026-01" | "2026-02" | "2026-03" | "2026-04" | "2026-05";
+type MonthKey = "2026-01" | "2026-02" | "2026-03" | "2026-04" | "2026-05" | "2026-06" | "2026-07";
 
 const monthOptions: { key: MonthKey; label: string; shortLabel: string }[] = [
   { key: "2026-01", label: "2026年1月", shortLabel: "1月" },
@@ -68,6 +87,15 @@ const monthOptions: { key: MonthKey; label: string; shortLabel: string }[] = [
   { key: "2026-03", label: "2026年3月", shortLabel: "3月" },
   { key: "2026-04", label: "2026年4月", shortLabel: "4月" },
   { key: "2026-05", label: "2026年5月", shortLabel: "5月" },
+  { key: "2026-06", label: "2026年6月", shortLabel: "6月" },
+  { key: "2026-07", label: "2026年7月", shortLabel: "7月" },
+];
+
+const julyAdStoreTabs: { key: JulyAdStoreKey; label: string }[] = [
+  { key: "all", label: "三店整体" },
+  { key: "88", label: "本土88" },
+  { key: "70", label: "本土70" },
+  { key: "329", label: "跨境329" },
 ];
 
 const januaryCategoryComparisonRows = [
@@ -133,9 +161,21 @@ const categoryComparisonRowsByMonth = {
   "2026-03": marchCategoryComparisonRows,
   "2026-04": aprilCategoryComparisonRows,
   "2026-05": mayCategoryComparisonRows,
+  "2026-06": [
+    ["居家百货", 2314, 0.259056, 86265, 0.219245],
+    ["服饰", 557, 0.212603, 26210, 0.177474],
+    ["电子电器", 541, 0.296191, 88972, 0.199599],
+    ["医药保健", 227, 0.250625, 8099, 0.241167],
+    ["鞋类", 28, 0.116942, 9063, 0.157256],
+    ["美容个护", 23, 0.226585, 7636, 0.310136],
+    ["钟表珠宝", 23, 0.119269, 3184, 0.236013],
+    ["包类", 12, 0.24241, 3145, 0.205625],
+    ["母婴玩具", 2, -0.057168, 632, 0.079792],
+  ],
 } as const;
 
 const formatCny = (value: number) => `¥${new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 }).format(value)}`;
+const formatCompactCny = (value: number) => value >= 10_000 ? `¥${(value / 10_000).toFixed(1)}万` : formatCny(value);
 const formatSignedCny = (value: number) => `${value >= 0 ? "+" : "-"}¥${new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 0 }).format(Math.abs(value))}`;
 const formatMonthKeyLabel = (value: string) => {
   if (!value.includes("-")) return value;
@@ -150,22 +190,38 @@ const reportTrendHistory = [
   { key: "2026-03", label: "3月", sales: 227_890.716977, orders: 2_879 },
   { key: "2026-04", label: "4月", sales: 194_562.604428, orders: 2_187 },
   { key: "2026-05", label: "5月", sales: 315_632.150955, orders: 4_208 },
+  { key: "2026-06", label: "6月", sales: 365_229.260773, orders: 3_727 },
 ] as const;
 const latestReportTrend = reportTrendHistory.slice(-6);
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<(typeof navItems)[number][0]>("经营总览");
-  const [siteUnlocked, setSiteUnlocked] = useState(true);
-  const [sitePassword, setSitePassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState<MonthKey>("2026-05");
-  const monthMeta = monthOptions.find((item) => item.key === selectedMonth) ?? monthOptions[4];
-  const overviewData = selectedMonth === "2026-05" ? mayOverview : selectedMonth === "2026-04" ? aprilOverview : selectedMonth === "2026-03" ? marchOverview : selectedMonth === "2026-02" ? februaryOverview : januaryOverview;
-  const overviewCustomerPriceCny = selectedMonth === "2026-05" ? mayCustomerPriceCny : selectedMonth === "2026-04" ? aprilCustomerPriceCny : selectedMonth === "2026-03" ? marchCustomerPriceCny : selectedMonth === "2026-02" ? februaryCustomerPriceCny : januaryCustomerPriceCny;
-  const selectedAdAnalysis = selectedMonth === "2026-05" ? { store: mayOverview.advertising.store, dateRange: mayOverview.advertising.period, sourceNote: mayOverview.advertising.source } : selectedMonth === "2026-04" ? { store: aprilOverview.advertising.store, dateRange: aprilOverview.advertising.period, sourceNote: aprilOverview.advertising.source } : selectedMonth === "2026-03" ? marchAdAnalysis : selectedMonth === "2026-02" ? februaryAdAnalysis : januaryAdAnalysis;
-  const categoryComparisonRows = categoryComparisonRowsByMonth[selectedMonth];
+  const [selectedMonth, setSelectedMonth] = useState<MonthKey>("2026-07");
+  const [selectedJulyAdStore, setSelectedJulyAdStore] = useState<JulyAdStoreKey>("all");
+  const monthMeta = monthOptions.find((item) => item.key === selectedMonth) ?? monthOptions[6];
+  const overviewData = selectedMonth === "2026-07" ? julyOverview : selectedMonth === "2026-06" ? juneOverview : selectedMonth === "2026-05" ? mayOverview : selectedMonth === "2026-04" ? aprilOverview : selectedMonth === "2026-03" ? marchOverview : selectedMonth === "2026-02" ? februaryOverview : januaryOverview;
+  const overviewCustomerPriceCny = selectedMonth === "2026-07" ? julyCustomerPriceCny : selectedMonth === "2026-06" ? juneCustomerPriceCny : selectedMonth === "2026-05" ? mayCustomerPriceCny : selectedMonth === "2026-04" ? aprilCustomerPriceCny : selectedMonth === "2026-03" ? marchCustomerPriceCny : selectedMonth === "2026-02" ? februaryCustomerPriceCny : januaryCustomerPriceCny;
+  const selectedJulyAdStoreLabel = julyAdStoreTabs.find((item) => item.key === selectedJulyAdStore)?.label ?? "三店整体";
+  const selectedAdAnalysis = selectedMonth === "2026-07" ? { ...julyAdHeader, store: selectedJulyAdStore === "all" ? julyAdHeader.store : selectedJulyAdStoreLabel } : selectedMonth === "2026-06" ? juneAdAnalysis : selectedMonth === "2026-05" ? { store: mayOverview.advertising.store, dateRange: mayOverview.advertising.period, sourceNote: mayOverview.advertising.source } : selectedMonth === "2026-04" ? { store: aprilOverview.advertising.store, dateRange: aprilOverview.advertising.period, sourceNote: aprilOverview.advertising.source } : selectedMonth === "2026-03" ? marchAdAnalysis : selectedMonth === "2026-02" ? februaryAdAnalysis : januaryAdAnalysis;
+  const categoryComparisonRows = categoryComparisonRowsByMonth[selectedMonth === "2026-07" ? "2026-06" : selectedMonth];
   const { personal, platform, advertising } = overviewData;
-  const isReportCenter = activeSection === "报告中心";
+  const isReportCenter = activeSection === "月度总结";
+  const isJulyOverview = activeSection === "经营总览" && selectedMonth === "2026-07";
+  const isJulyProduct = activeSection === "产品分析" && selectedMonth === "2026-07";
+  const isJulyCategory = activeSection === "品类分析" && selectedMonth === "2026-07";
+  const isJulyAd = activeSection === "广告分析" && selectedMonth === "2026-07";
+  const isJulyCompare = activeSection === "月度对比" && selectedMonth === "2026-07";
+  const isJulySummary = activeSection === "月度总结" && selectedMonth === "2026-07";
+  const isJulyCanvas = isJulyOverview || isJulyProduct || isJulyCategory || isJulyAd || isJulyCompare || isJulySummary;
+  const visibleMonthOptions = activeSection === "月度总结"
+    ? monthOptions.filter((item) => item.key === "2026-06" || item.key === "2026-07")
+    : activeSection === "经营总览" || activeSection === "产品分析" || activeSection === "品类分析" || activeSection === "广告分析" || activeSection === "月度对比"
+      ? monthOptions
+      : monthOptions.filter((item) => item.key !== "2026-07");
+  const handleSectionChange = (label: (typeof navItems)[number][0]) => {
+    setActiveSection(label);
+    if (selectedMonth === "2026-07" && label !== "经营总览" && label !== "产品分析" && label !== "品类分析" && label !== "广告分析" && label !== "月度对比" && label !== "月度总结") setSelectedMonth("2026-06");
+  };
 
   const structureOption = useMemo<EChartsOption>(() => ({
     animationDuration: 700,
@@ -184,16 +240,16 @@ export default function Dashboard() {
   const categoryOption = useMemo<EChartsOption>(() => ({
     color: ["#7655f6", "#18b9c4", "#ff7186", "#f5b746", "#91d36f", "#8fa9ff", "#c5a5ef", "#d6d8e8"],
     tooltip: { trigger: "item", formatter: "{b}<br/>{d}%" },
-    legend: { bottom: 0, left: "center", itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 8, color: "#777a92" } },
+    legend: { bottom: 0, left: "center", itemWidth: 8, itemHeight: 8, textStyle: { fontSize: selectedMonth === "2026-07" ? 11 : 8, color: "#777a92" } },
     series: [
       { name: "个人品类", type: "pie", radius: ["42%", "64%"], center: ["25%", "43%"], label: { show: false }, data: [...overviewData.personalCategories] },
       { name: "平台品类", type: "pie", radius: ["42%", "64%"], center: ["75%", "43%"], label: { show: false }, data: [...overviewData.platformCategories] },
     ],
     graphic: [
-      { type: "text", left: "21%", top: "39.5%", style: { text: "个人品类", fill: "#575b6f", fontSize: 10, fontWeight: 700 } },
-      { type: "text", left: "71%", top: "39.5%", style: { text: "平台品类", fill: "#575b6f", fontSize: 10, fontWeight: 700 } },
+      { type: "text", left: "21%", top: "39.5%", style: { text: "个人品类", fill: "#575b6f", fontSize: selectedMonth === "2026-07" ? 12 : 10, fontWeight: 700 } },
+      { type: "text", left: "71%", top: "39.5%", style: { text: "平台品类", fill: "#575b6f", fontSize: selectedMonth === "2026-07" ? 12 : 10, fontWeight: 700 } },
     ],
-  }), [overviewData.personalCategories, overviewData.platformCategories]);
+  }), [overviewData.personalCategories, overviewData.platformCategories, selectedMonth]);
 
   const kpis = [
     ["有效订单量", formatNumber(personal.orders), ShoppingCart, "violet", "Excel · 个人品类"],
@@ -223,61 +279,28 @@ export default function Dashboard() {
     ["转化销量", `${formatNumber(advertising.conversions)} 次`, advertising.store],
   ];
 
-  if (!siteUnlocked) {
-    return (
-      <div className="password-page">
-        <form
-          className="password-card"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (sitePassword === "527205109") {
-              window.sessionStorage.setItem("coupang-site-unlocked", "yes");
-              setSiteUnlocked(true);
-              setPasswordError("");
-            } else {
-              setPasswordError("密码不正确，请重新输入");
-            }
-          }}
-        >
-          <div className="password-logo">JY</div>
-          <h1>Coupang.JY 经营分析</h1>
-          <p>请输入访问密码后查看经营数据看板</p>
-          <input
-            type="password"
-            value={sitePassword}
-            onChange={(event) => setSitePassword(event.target.value)}
-            placeholder="请输入密码"
-            autoFocus
-          />
-          {passwordError ? <span>{passwordError}</span> : null}
-          <button type="submit">进入网站</button>
-        </form>
-      </div>
-    );
-  }
-
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isJulyCanvas ? " july-app-shell" : ""}${isJulyCategory ? " july-category-app-shell" : ""}${isJulyAd ? " july-ad-app-shell" : ""}${isJulyCompare ? " july-compare-app-shell" : ""}${isJulySummary ? " july-summary-app-shell" : ""}`}>
       <aside className="sidebar">
         <div className="brand">
-          <img className="brand-logo-image" src="/coupang-header-logo.svg" alt="coupang" />
+          <img className="brand-logo-image" src="./coupang-header-logo.svg" alt="coupang" />
           <span className="brand-suffix">.JY</span>
         </div>
-        <nav>{navItems.map(([label, Icon]) => <button key={label} onClick={() => setActiveSection(label)} className={activeSection === label ? "nav-active" : ""}><Icon size={18} /><span>{label}</span></button>)}</nav>
+        <nav>{navItems.map(([label, Icon]) => <button key={label} onClick={() => handleSectionChange(label)} className={activeSection === label ? "nav-active" : ""}><Icon size={18} /><span>{label}</span></button>)}</nav>
         <button className="logout"><LogOut size={18} />退出登录</button>
       </aside>
 
       <main>
-        <header className={isReportCenter ? "topbar report-topbar" : "topbar"}>
-        <div className="greeting"><h1>{activeSection === "产品分析" ? `${monthMeta.shortLabel}产品分析` : activeSection === "品类分析" ? `${monthMeta.shortLabel}品类分析` : activeSection === "广告分析" ? `${monthMeta.shortLabel}广告整体分析` : activeSection === "月度对比" ? selectedMonth === "2026-05" ? "月度对比：2026年4月 vs 2026年5月" : selectedMonth === "2026-04" ? "月度对比：2026年3月 vs 2026年4月" : selectedMonth === "2026-03" ? "月度对比：2026年2月 vs 2026年3月" : selectedMonth === "2026-02" ? "月度对比：2026年1月 vs 2026年2月" : "月度对比：2025年12月 vs 2026年1月" : isReportCenter ? "报告中心" : `${monthMeta.shortLabel}经营总览`}</h1><p>{activeSection === "产品分析" ? "产品销售、店铺出单、毛利与异常预警" : activeSection === "品类分析" ? "个人品类经营与平台大盘对照" : activeSection === "广告分析" ? `${selectedAdAnalysis.store} · ${selectedAdAnalysis.dateRange} · ${selectedAdAnalysis.sourceNote}` : activeSection === "月度对比" ? "个人产品口径 · 销售额与利润统一显示人民币符号" : isReportCenter ? "月度经营复盘、模块报告导出与展示资料生成" : "个人经营数据与平台整体数据对照"}</p></div>
-          <button className="scope-button">个人经营 <ChevronDown size={15} /></button>
-          <label className="date-button month-select"><CalendarDays size={15} /><select value={selectedMonth} onChange={(event) => setSelectedMonth(event.target.value as MonthKey)} aria-label="选择月份">{monthOptions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select><ChevronDown size={15} /></label>
-          <label className="search-box"><Search size={16} /><input aria-label="搜索" placeholder={activeSection === "产品分析" ? "搜索产品名称、产品ID、店铺" : activeSection === "广告分析" ? "搜索时间段、指标" : "搜索商品、品类、SKU"} /></label>
+        <header className={`${isReportCenter ? "topbar report-topbar" : "topbar"}${isJulyCanvas ? " july-topbar" : ""}${isJulyProduct ? " july-product-topbar" : ""}${isJulyCategory ? " july-category-topbar" : ""}${isJulyAd ? " july-ad-topbar" : ""}`}>
+        <div className="greeting"><h1>{activeSection === "产品分析" ? `${monthMeta.shortLabel}产品分析` : activeSection === "品类分析" ? `${monthMeta.shortLabel}品类分析` : activeSection === "广告分析" ? `${monthMeta.shortLabel}广告整体分析` : activeSection === "月度对比" ? selectedMonth === "2026-07" ? "月度对比：2026年6月 vs 2026年7月" : selectedMonth === "2026-06" ? "月度对比：2026年5月 vs 2026年6月" : selectedMonth === "2026-05" ? "月度对比：2026年4月 vs 2026年5月" : selectedMonth === "2026-04" ? "月度对比：2026年3月 vs 2026年4月" : selectedMonth === "2026-03" ? "月度对比：2026年2月 vs 2026年3月" : selectedMonth === "2026-02" ? "月度对比：2026年1月 vs 2026年2月" : "月度对比：2025年12月 vs 2026年1月" : isReportCenter ? "月度总结" : `${monthMeta.shortLabel}经营总览`}</h1><p>{activeSection === "产品分析" ? selectedMonth === "2026-07" ? "产品订单贡献、优质品与异常风险" : "产品销售、店铺出单、毛利与异常预警" : activeSection === "品类分析" ? "个人品类经营与平台大盘对照" : activeSection === "广告分析" ? `${selectedAdAnalysis.store} · ${selectedAdAnalysis.dateRange} · ${selectedAdAnalysis.sourceNote}` : activeSection === "月度对比" ? "个人产品口径 · 销售额与利润统一显示人民币符号" : isReportCenter ? `${monthMeta.shortLabel}经营总结一页纸` : "个人经营数据与平台整体数据对照"}</p></div>
+          {isJulyCategory ? <div className="store-tabs july-category-scope" aria-label="品类分析口径"><button className="selected" type="button">个人品类</button><button type="button">平台整体</button></div> : isJulyAd ? <div className="store-tabs july-ad-scope" aria-label="广告分析店铺筛选">{julyAdStoreTabs.map((item) => <button key={item.key} className={selectedJulyAdStore === item.key ? "selected" : ""} type="button" onClick={() => setSelectedJulyAdStore(item.key)} aria-pressed={selectedJulyAdStore === item.key}>{item.label}</button>)}</div> : <button className="scope-button">个人经营 <ChevronDown size={15} /></button>}
+          <label className="date-button month-select"><CalendarDays size={15} /><select value={selectedMonth} onChange={(event) => setSelectedMonth(event.target.value as MonthKey)} aria-label="选择月份">{visibleMonthOptions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select><ChevronDown size={15} /></label>
+          <label className="search-box"><Search size={16} /><input aria-label="搜索" placeholder={activeSection === "产品分析" ? "搜索产品名称、产品ID、店铺" : activeSection === "品类分析" ? "搜索品类、指标" : activeSection === "广告分析" ? "搜索时间段、指标" : "搜索商品、品类、SKU"} /></label>
           <button className="icon-button" aria-label="通知"><Bell size={18} /></button>
           <span className="avatar">JY</span>
         </header>
 
-      {activeSection === "产品分析" ? <ProductAnalysisPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : activeSection === "品类分析" ? <CategoryAnalysisPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : activeSection === "广告分析" ? <AdAnalysisPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : activeSection === "月度对比" ? <MonthCompareVisualPage selectedMonth={selectedMonth} /> : isReportCenter ? <ReportCenterPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : <div className="content-canvas overview-canvas">
+      {activeSection === "产品分析" ? <ProductAnalysisPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : activeSection === "品类分析" ? <CategoryAnalysisPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : activeSection === "广告分析" ? selectedMonth === "2026-07" ? <JulyAdAnalysisPage selectedStore={selectedJulyAdStore} /> : <AdAnalysisPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : activeSection === "月度对比" ? selectedMonth === "2026-07" ? <JulyMonthComparison onCompareMonthChange={(value) => setSelectedMonth(value as MonthKey)} /> : <MonthCompareVisualPage selectedMonth={selectedMonth} /> : isReportCenter ? selectedMonth === "2026-07" ? <JulyMonthlySummary onMonthChange={(value) => setSelectedMonth(value)} /> : <ReportCenterPage selectedMonth={selectedMonth} monthLabel={monthMeta.shortLabel} /> : selectedMonth === "2026-07" ? <JulyOverviewPage structureOption={structureOption} categoryOption={categoryOption} /> : <div className="content-canvas overview-canvas">
           <section className="kpi-row">{kpis.map(([label, value, Icon, tone, note]) => <article className="kpi-card" key={label}><span className={`kpi-icon ${tone}`}><Icon size={21} /></span><div><span>{label}</span><strong>{value}</strong><small>{note}</small></div></article>)}</section>
 
           <section className="analytics-row">
@@ -296,13 +319,175 @@ export default function Dashboard() {
   );
 }
 
+function JulyOverviewPage({ structureOption, categoryOption }: { structureOption: EChartsOption; categoryOption: EChartsOption }) {
+  const [showAllPersonnel, setShowAllPersonnel] = useState(false);
+  const { personal, platform } = julyOverview;
+  const maxPersonnelOrders = julyPersonnelRows[0]?.orders ?? 1;
+  const featuredPersonnel = julyPersonnelRows.find((item) => item.name === "樊锦栎");
+  const previewPersonnel = featuredPersonnel
+    ? [...julyPersonnelRows.slice(0, 5), featuredPersonnel]
+    : julyPersonnelRows.slice(0, 6);
+  const visiblePersonnel = showAllPersonnel ? julyPersonnelRows : previewPersonnel;
+  const kpis = [
+    ["有效订单量", formatNumber(personal.orders), ShoppingCart, "violet", `平台 ${formatNumber(platform.orders)}`],
+    ["销售额", formatCompactCny(personal.revenueCny), Boxes, "cyan", `精确 ${formatCny(personal.revenueCny)}`],
+    ["客单价", formatCny(julyCustomerPriceCny), WalletCards, "cyan", "店铺下单金额 ÷ 订单量"],
+    ["退损率", formatPercent(personal.lossRate * 100, 2), TrendingDown, "coral", `平台 ${formatPercent(platform.lossRate * 100, 2)}`],
+    ["毛利率", formatPercent(personal.grossMargin * 100, 2), TrendingUp, "violet", `毛利润 ${formatCny(personal.grossProfit)}`],
+  ] as const;
+  const costMetrics = [
+    ["物流成本占比", personal.logisticsShare, platform.logisticsShare],
+    ["采购成本占比", personal.purchaseShare, platform.purchaseShare],
+    ["广告花费占比", personal.advertisingShare, platform.advertisingShare],
+    ["平台佣金占比", personal.commissionShare, platform.commissionShare],
+    ["VAT金额占比", personal.vatShare, platform.vatShare],
+    ["毛利率", personal.grossMargin, platform.grossMargin],
+  ] as const;
+
+  return (
+    <div className="content-canvas overview-canvas july-overview-canvas">
+      <section className="kpi-row july-kpi-row" aria-label="7月核心经营指标">
+        {kpis.map(([label, value, Icon, tone, note]) => (
+          <article className="kpi-card july-kpi-card" key={label}>
+            <span className={`kpi-icon ${tone}`}><Icon size={22} /></span>
+            <div><span>{label}</span><strong>{value}</strong><small>{note}</small></div>
+          </article>
+        ))}
+      </section>
+
+      <section className="analytics-row july-analytics-row">
+        <article className="panel chart-panel july-chart-panel">
+          <div className="panel-heading"><div><h2>7月经营结构</h2><p>个人与平台成本、退损和毛利结构对比</p></div><span className="data-source">Excel真实数据</span></div>
+          <EChart option={structureOption} height={300} />
+        </article>
+        <article className="panel category-panel july-category-panel">
+          <div className="panel-heading"><div><h2>个人品类 / 平台品类</h2><p>按销售额计算品类占比</p></div></div>
+          <EChart option={categoryOption} height={300} />
+        </article>
+      </section>
+
+      <section className="panel july-cost-panel">
+        <div className="panel-heading"><div><h2>成本与毛利指标</h2><p>个人 7 月成本结构，并列展示平台口径</p></div></div>
+        <div className="july-cost-rail">
+          {costMetrics.map(([label, value, platformValue], index) => (
+            <div className="july-cost-item" key={label}>
+              <span className={`july-cost-dot tone-${index % 3}`} aria-hidden="true" />
+              <span>{label}</span>
+              <strong>{formatPercent(value * 100, 2)}</strong>
+              <small>平台 {formatPercent(platformValue * 100, 2)}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel july-store-panel">
+        <div className="panel-heading july-section-heading">
+          <div><h2>店铺贡献分析</h2><p>每个店铺贡献订单、销售额、毛利率与退损率</p></div>
+          <div className="july-section-summary"><strong>{formatNumber(personal.orders)}</strong><span>个人总订单</span></div>
+        </div>
+        <div className="july-store-scroll" role="region" aria-label="店铺贡献明细" tabIndex={0}>
+          <div className="july-store-grid july-store-head" aria-hidden="true">
+            <span>店铺</span><span>订单量</span><span>订单贡献</span><span>销售额</span><span>毛利率</span><span>退损率</span>
+          </div>
+          {julyStoreContributions.map((item) => (
+            <div className="july-store-grid july-store-row" key={item.store}>
+              <strong>{item.store}</strong>
+              <b>{formatNumber(item.orders)}</b>
+              <div className="july-store-share"><div><i style={{ width: `${item.orderShare * 100}%` }} /></div><span>{formatPercent(item.orderShare * 100, 2)}</span></div>
+              <span>{formatCny(item.revenueCny)}</span>
+              <span className="metric-positive">{formatPercent(item.grossMargin * 100, 2)}</span>
+              <span className={item.lossRate >= 0.12 ? "metric-risk" : "metric-neutral"}>{formatPercent(item.lossRate * 100, 2)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel july-personnel-panel">
+        <div className="panel-heading july-section-heading">
+          <div><h2>人员分析（平台整体）</h2><p>平台整体人员订单排名与经营质量对照</p></div>
+          <span className="data-source">共 {julyPersonnelSummary.count} 人</span>
+        </div>
+        <div className="july-personnel-summary" aria-label="平台人员汇总指标">
+          <div><span>人员数</span><strong>{julyPersonnelSummary.count}</strong></div>
+          <div><span>平台订单</span><strong>{formatNumber(julyPersonnelSummary.orders)}</strong></div>
+          <div><span>平台销售额</span><strong>{formatCompactCny(julyPersonnelSummary.revenueCny)}</strong></div>
+          <div><span>平台毛利率</span><strong>{formatPercent(julyPersonnelSummary.grossMargin * 100, 2)}</strong></div>
+          <div><span>平台退损率</span><strong>{formatPercent(julyPersonnelSummary.lossRate * 100, 2)}</strong></div>
+        </div>
+        <div className="july-personnel-layout">
+          <div className="july-ranking-card">
+            <h3>出单订单量 TOP10</h3>
+            <div className="july-ranking-list">
+              {julyPersonnelRows.slice(0, 10).map((item, index) => (
+                <div className={item.name === "樊锦栎" ? "is-current" : ""} key={item.name}>
+                  <span>{index + 1}</span><b>{item.name}</b>
+                  <div><i style={{ width: `${Math.max(6, item.orders / maxPersonnelOrders * 100)}%` }} /></div>
+                  <strong>{formatNumber(item.orders)}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="july-quality-card">
+            <div className="july-quality-title"><h3>经营质量明细</h3><span>樊锦栎为当前个人口径</span></div>
+            <div className="july-quality-scroll" role="region" aria-label="人员经营质量明细" tabIndex={0}>
+              <table>
+                <thead><tr><th>人员</th><th>订单量</th><th>销售额</th><th>毛利率</th><th>退损率</th></tr></thead>
+                <tbody>
+                  {visiblePersonnel.map((item) => (
+                    <tr className={item.name === "樊锦栎" ? "is-current" : ""} key={item.name}>
+                      <td>{item.name}</td><td>{formatNumber(item.orders)}</td><td>{formatCny(item.revenueCny)}</td>
+                      <td className={item.grossMargin < 0 ? "metric-risk" : "metric-positive"}>{formatPercent(item.grossMargin * 100, 2)}</td>
+                      <td className={item.lossRate >= 0.15 ? "metric-risk" : "metric-neutral"}>{formatPercent(item.lossRate * 100, 2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button className="july-expand-button" type="button" aria-expanded={showAllPersonnel} onClick={() => setShowAllPersonnel((value) => !value)}>
+              {showAllPersonnel ? "收起人员明细" : `查看全部 ${julyPersonnelSummary.count} 人`}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function ReportCenterPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey; monthLabel: string }) {
-  const overview = selectedMonth === "2026-05" ? mayOverview : selectedMonth === "2026-04" ? aprilOverview : selectedMonth === "2026-03" ? marchOverview : selectedMonth === "2026-02" ? februaryOverview : januaryOverview;
-  const customerPriceCny = selectedMonth === "2026-05" ? mayCustomerPriceCny : selectedMonth === "2026-04" ? aprilCustomerPriceCny : selectedMonth === "2026-03" ? marchCustomerPriceCny : selectedMonth === "2026-02" ? februaryCustomerPriceCny : januaryCustomerPriceCny;
-  const compareData = selectedMonth === "2026-05" ? monthCompareMay : selectedMonth === "2026-04" ? monthCompareApril : selectedMonth === "2026-03" ? monthCompareMarch : selectedMonth === "2026-02" ? monthCompareFebruary : monthCompare;
+  const monthlySummaryPdfUrl = `data:application/pdf;base64,${juneBusinessSummaryPdfBase64}`;
+  return (
+    <div className="content-canvas monthly-summary-canvas">
+      <section className="monthly-summary-hero">
+        <div>
+          <span className="summary-eyebrow">月度总结 · 2026年6月</span>
+          <h2>樊锦栎 6月经营总结一页纸</h2>
+          <p>当前月度总结以最终 PDF 成稿为准；报告中心仅保留 6 月经营总结，不再展示其他月份报告模块。</p>
+        </div>
+        <div className="summary-actions">
+          <a href={monthlySummaryPdfUrl} target="_blank" rel="noreferrer"><Eye size={17} />打开预览</a>
+          <a className="download" href={monthlySummaryPdfUrl} download="樊锦栎_6月经营总结_一页纸.pdf"><Download size={17} />下载 PDF</a>
+        </div>
+      </section>
+
+      <section className="monthly-summary-frame-panel">
+        <div className="summary-frame-toolbar">
+          <div>
+            <h3>2026年6月经营总结</h3>
+            <p>一页纸 PDF · 横版 A4 · 适合复盘汇报与归档</p>
+          </div>
+          <span>PDF</span>
+        </div>
+        <iframe className="monthly-summary-frame" src={monthlySummaryPdfUrl} title="樊锦栎 6月经营总结一页纸" />
+      </section>
+    </div>
+  );
+
+  const overview = selectedMonth === "2026-06" ? juneOverview : selectedMonth === "2026-05" ? mayOverview : selectedMonth === "2026-04" ? aprilOverview : selectedMonth === "2026-03" ? marchOverview : selectedMonth === "2026-02" ? februaryOverview : januaryOverview;
+  const customerPriceCny = selectedMonth === "2026-06" ? juneCustomerPriceCny : selectedMonth === "2026-05" ? mayCustomerPriceCny : selectedMonth === "2026-04" ? aprilCustomerPriceCny : selectedMonth === "2026-03" ? marchCustomerPriceCny : selectedMonth === "2026-02" ? februaryCustomerPriceCny : januaryCustomerPriceCny;
+  const compareData = selectedMonth === "2026-06" ? monthCompareJune : selectedMonth === "2026-05" ? monthCompareMay : selectedMonth === "2026-04" ? monthCompareApril : selectedMonth === "2026-03" ? monthCompareMarch : selectedMonth === "2026-02" ? monthCompareFebruary : monthCompare;
   const { personal } = overview;
   const reportMonthLabel = overview.month;
-  const previousMonthLabel = selectedMonth === "2026-05" ? "2026年4月" : selectedMonth === "2026-04" ? "2026年3月" : selectedMonth === "2026-03" ? "2026年2月" : selectedMonth === "2026-02" ? "2026年1月" : "2025年12月";
+  const previousMonthLabel = selectedMonth === "2026-06" ? "2026年5月" : selectedMonth === "2026-05" ? "2026年4月" : selectedMonth === "2026-04" ? "2026年3月" : selectedMonth === "2026-03" ? "2026年2月" : selectedMonth === "2026-02" ? "2026年1月" : "2025年12月";
   const salesMom = compareData.personalKpis.find((item) => item.label === "收入合计")?.mom ?? 0;
   const orderMom = compareData.personalKpis.find((item) => item.label === "有效订单量")?.mom ?? 0;
   const marginDiff = compareData.personalKpis.find((item) => item.label === "毛利率")?.diff ?? 0;
@@ -333,6 +518,14 @@ function ReportCenterPage({ selectedMonth, monthLabel }: { selectedMonth: MonthK
     ["退损率", formatPercent(personal.lossRate * 100, 2), TrendingDown, "coral"],
     ["毛利率", formatPercent(personal.grossMargin * 100, 2), Percent, "green"],
   ] as const;
+
+  const juneAdSummary = juneAdAnalysis.summary;
+  const juneAdStoreRows = juneAdAnalysis.storeBreakdown;
+  const juneAdMaxTotalSales = Math.max(...juneAdStoreRows.map((row) => Number(row.totalSales)));
+  const juneAdMaxAdSales = Math.max(...juneAdStoreRows.map((row) => Number(row.adSales)));
+  const handleExportJuneAdPdf = () => {
+    window.print();
+  };
 
   const previewTrend = useMemo<EChartsOption>(() => ({
     color: ["#7058f5", "#13b9c7"],
@@ -428,8 +621,16 @@ function ReportCenterPage({ selectedMonth, monthLabel }: { selectedMonth: MonthK
           <article className="panel export-panel">
             <h2>导出设置</h2>
             <div className="export-check-grid">{exportChecks.map((item) => <label key={item}><input type="checkbox" checked readOnly />{item}</label>)}</div>
+            <div className="fixed-pdf-card">
+              <div>
+                <span>固定模板</span>
+                <h3>6月广告分析总结 PDF</h3>
+                <p>广告后台口径 · 三店铺汇总 · 金额保留韩币原始数值</p>
+              </div>
+              <button type="button" onClick={handleExportJuneAdPdf}><Download size={16} />导出</button>
+            </div>
             <div className="export-actions">
-              <button><Download size={17} />导出 PDF</button>
+              <button type="button" onClick={handleExportJuneAdPdf}><Download size={17} />导出 PDF</button>
               <button className="png"><FileText size={17} />导出 PNG</button>
               <button className="sheet"><Table2 size={17} />导出数据表</button>
             </div>
@@ -447,6 +648,81 @@ function ReportCenterPage({ selectedMonth, monthLabel }: { selectedMonth: MonthK
             </div>
           </article>
         </aside>
+      </section>
+
+      <section className="june-ad-pdf-sheet" aria-label="6月广告分析总结 PDF">
+        <div className="pdf-hero">
+          <div>
+            <p>coupang.JY · 广告后台口径</p>
+            <h1>2026年6月广告分析总结</h1>
+            <span>本土88 · 本土70 · 跨境329 ｜ {juneAdAnalysis.dateRange}</span>
+          </div>
+          <strong>CONFIDENTIAL</strong>
+        </div>
+        <div className="pdf-kpi-grid">
+          <article><p>广告后台销售额</p><strong>{formatKrw(juneAdSummary.totalSales)}</strong><span>三店后台覆盖销售规模</span></article>
+          <article><p>广告转化销售额</p><strong>{formatKrw(juneAdSummary.adSales)}</strong><span>广告直接贡献</span></article>
+          <article><p>广告费</p><strong>{formatKrw(juneAdSummary.adSpend)}</strong><span>三店投放成本</span></article>
+          <article><p>综合 ROAS</p><strong>{formatPercent(juneAdSummary.roas * 100, 2)}</strong><span>整体投产健康</span></article>
+        </div>
+        <div className="pdf-main-grid">
+          <article className="pdf-store-panel">
+            <div className="pdf-section-title">
+              <h2>三店销售贡献对比</h2>
+              <p>紫色为广告后台销售额，青色为广告转化销售额；金额按韩币原始数值展示。</p>
+            </div>
+            <div className="pdf-store-list">
+              {juneAdStoreRows.map((row) => (
+                <div className="pdf-store-row" key={String(row.store)}>
+                  <div className="pdf-store-name">{row.store}</div>
+                  <div className="pdf-store-bars">
+                    <span className="pdf-bar-track"><i style={{ width: `${(Number(row.totalSales) / juneAdMaxTotalSales) * 100}%` }} /></span>
+                    <span className="pdf-bar-track ad"><i style={{ width: `${(Number(row.adSales) / juneAdMaxAdSales) * 100}%` }} /></span>
+                  </div>
+                  <div className="pdf-store-values">
+                    <b>{formatKrw(Number(row.totalSales))}</b>
+                    <span>广告 {formatKrw(Number(row.adSales))}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+          <article className="pdf-insight-panel">
+            <div className="pdf-section-title">
+              <h2>总结判断</h2>
+              <p>保留优势与下一步优化方向。</p>
+            </div>
+            <div className="pdf-insight good">
+              <b>需要保持</b>
+              <span>跨境329 ROAS 690.77%，三店中投产效率最高。</span>
+            </div>
+            <div className="pdf-insight warn">
+              <b>需要优化</b>
+              <span>本土88广告转化销售额占比较低，需要优化投放结构和承接产品。</span>
+            </div>
+            <div className="pdf-insight note">
+              <b>数据备注</b>
+              <span>本土70周度数据存在缺口；活动名称以截图可见内容展示。</span>
+            </div>
+          </article>
+        </div>
+        <table className="pdf-store-table">
+          <thead><tr><th>店铺</th><th>曝光量</th><th>点击量</th><th>转化销量</th><th>广告后台销售额</th><th>广告转化销售额</th><th>广告费</th><th>ROAS</th></tr></thead>
+          <tbody>
+            {juneAdStoreRows.map((row) => (
+              <tr key={String(row.store)}>
+                <td>{row.store}</td>
+                <td>{formatNumber(Number(row.impressions))}</td>
+                <td>{formatNumber(Number(row.clicks))}</td>
+                <td>{formatNumber(Number(row.conversionSalesCount))}</td>
+                <td>{formatKrw(Number(row.totalSales))}</td>
+                <td>{formatKrw(Number(row.adSales))}</td>
+                <td>{formatKrw(Number(row.adSpend))}</td>
+                <td>{formatPercent(Number(row.roas) * 100, 2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
 
       <section className="panel history-panel">
@@ -474,7 +750,7 @@ function PieReportIcon({ size = 24 }: { size?: number }) {
 }
 
 function MonthCompareVisualPage({ selectedMonth }: { selectedMonth: MonthKey }) {
-  const data = selectedMonth === "2026-05" ? monthCompareMay : selectedMonth === "2026-04" ? monthCompareApril : selectedMonth === "2026-03" ? monthCompareMarch : selectedMonth === "2026-02" ? monthCompareFebruary : monthCompare;
+  const data = selectedMonth === "2026-06" ? monthCompareJune : selectedMonth === "2026-05" ? monthCompareMay : selectedMonth === "2026-04" ? monthCompareApril : selectedMonth === "2026-03" ? monthCompareMarch : selectedMonth === "2026-02" ? monthCompareFebruary : monthCompare;
   const kpis = data.personalKpis;
   const moneyMetrics = kpis.filter((item) => item.kind === "money");
   const barMetrics = kpis.filter((item) => ["money", "count"].includes(item.kind)).slice(0, 4);
@@ -835,11 +1111,30 @@ function MonthComparePage() {
 
 */
 function AdAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey; monthLabel: string }) {
-  const data = selectedMonth === "2026-05" ? mayAdAnalysis : selectedMonth === "2026-04" ? aprilAdAnalysis : selectedMonth === "2026-03" ? marchAdAnalysis : selectedMonth === "2026-02" ? februaryAdAnalysis : januaryAdAnalysis;
+  const data = selectedMonth === "2026-06" ? juneAdAnalysis : selectedMonth === "2026-05" ? mayAdAnalysis : selectedMonth === "2026-04" ? aprilAdAnalysis : selectedMonth === "2026-03" ? marchAdAnalysis : selectedMonth === "2026-02" ? februaryAdAnalysis : januaryAdAnalysis;
   const summary = data.summary;
-  const periods = data.periodRows;
+  const periods: readonly AdPeriodRow[] = data.periodRows?.length ? data.periodRows : [{
+    period: data.dateRange,
+    impressions: summary.impressions,
+    clicks: summary.clicks,
+    ctr: summary.ctr,
+    cpc: summary.cpc,
+    adOrders: summary.adOrders,
+    conversionSalesCount: summary.conversionSalesCount,
+    cvr: summary.cvr,
+    adSpend: summary.adSpend,
+    adSales: summary.adSales,
+    totalSales: summary.totalSales,
+    roas: summary.roas,
+  }];
   const periodLabels = periods.map((item) => item.period.replace("2026/", ""));
   const insights = "insightCards" in data ? data.insightCards : adInsightCards;
+  const screenshotTrends = data.screenshotTrends ?? {
+    impressions: periods.map((item) => item.impressions),
+    clicks: periods.map((item) => item.clicks),
+    conversionSalesCount: periods.map((item) => item.conversionSalesCount),
+    roas: periods.map((item) => Math.round(item.roas * 100)),
+  };
 
   const metricCards = [
     ["曝光量", `${formatNumber(summary.impressions)} 次`, Eye, "blue", "广告被展示次数"],
@@ -903,10 +1198,10 @@ function AdAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey
   }), [periodLabels, periods]);
 
   const trendCards = [
-    ["曝光量趋势", data.screenshotTrends.impressions, "#5470C6"],
-    ["点击量趋势", data.screenshotTrends.clicks, "#7655f6"],
-    ["转化销量趋势", data.screenshotTrends.conversionSalesCount, "#91CC75"],
-    ["ROAS趋势", data.screenshotTrends.roas, "#9A60B4"],
+    ["曝光量趋势", screenshotTrends.impressions, "#5470C6"],
+    ["点击量趋势", screenshotTrends.clicks, "#7655f6"],
+    ["转化销量趋势", screenshotTrends.conversionSalesCount, "#91CC75"],
+    ["ROAS趋势", screenshotTrends.roas, "#9A60B4"],
   ] as const;
 
   const roasClass = (roas: number) => roas >= 5 ? "good" : roas >= 3 ? "warn" : roas >= 1 ? "mid" : "danger";
@@ -993,8 +1288,119 @@ function AdAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey
   );
 }
 
+function ProductStoreBadges({ stores }: Pick<JulyProductRow, "stores">) {
+  const label = stores.join("/");
+  return <span className={`july-product-store-badge${stores.length > 1 ? " multi" : ""}`} title={label}>{label}</span>;
+}
+
 function ProductAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey; monthLabel: string }) {
-  const data = selectedMonth === "2026-05" ? mayProductAnalysis : selectedMonth === "2026-04" ? aprilProductAnalysis : selectedMonth === "2026-03" ? marchProductAnalysis : selectedMonth === "2026-02" ? februaryProductAnalysis : januaryProductAnalysis;
+  if (selectedMonth === "2026-07") return <JulyProductAnalysisPage />;
+  return <LegacyProductAnalysisPage selectedMonth={selectedMonth} monthLabel={monthLabel} />;
+}
+
+function JulyProductAnalysisPage() {
+  const { summary, orderRanking, contributionRanking, anomalies } = julyProductAnalysis;
+  const contributionRankingByOrders = [...contributionRanking].sort((a, b) => b.orders - a.orders);
+  const averageOrderValue = summary.sellerOrderAmountCny / summary.orders;
+  const kpis = [
+    ["订单量", formatNumber(summary.orders), ShoppingCart, "violet", "有效订单"],
+    ["销售额", formatCompactCny(summary.revenueCny), Boxes, "cyan", `精确 ${formatCny(summary.revenueCny)}`],
+    ["产品数", formatNumber(summary.productCount), PackageSearch, "orange", "合并多店铺后"],
+    ["客单价", formatCny(averageOrderValue), WalletCards, "blue", "卖家订单额 ÷ 订单量"],
+    ["毛利率", formatPercent(summary.grossMargin * 100, 2), TrendingUp, "lime", `毛利润 ${formatCny(summary.grossProfitCny)}`],
+    ["退损率", formatPercent(summary.lossRate * 100, 2), TrendingDown, "coral", "异常筛选基准"],
+  ] as const;
+
+  return (
+    <div className="content-canvas product-canvas july-product-canvas">
+      <section className="kpi-row july-product-kpis" aria-label="7月产品核心指标">
+        {kpis.map(([label, value, Icon, tone, note]) => (
+          <article className="kpi-card july-product-kpi" key={label}>
+            <span className={`kpi-icon ${tone}`}><Icon size={22} /></span>
+            <div><span>{label}</span><strong>{value}</strong><small title={note}>{note}</small></div>
+          </article>
+        ))}
+      </section>
+
+      <section className="july-product-upper-grid">
+        <article className="panel july-product-ranking-panel">
+          <div className="panel-heading july-product-panel-heading">
+            <div><h2>商品排行（订单量）</h2><p>按产品ID合并多店铺，订单量从高到低</p></div>
+            <span className="data-source">7月Excel</span>
+          </div>
+          <div className="july-product-table-scroll" role="region" aria-label="商品订单量排行" tabIndex={0}>
+            <table className="july-product-ranking-table">
+              <thead><tr><th>排名</th><th>产品ID</th><th>产品名称</th><th>店铺</th><th>订单量</th><th>销售额</th><th>毛利率</th><th>退损率</th></tr></thead>
+              <tbody className="july-order-ranking-body">
+                {orderRanking.map((item, index) => (
+                  <tr key={item.id}>
+                    <td><b className="july-product-rank-number">{index + 1}</b></td>
+                    <td>{item.id}</td>
+                    <td className="july-product-name-cell"><span title={item.name}>{item.name}</span></td>
+                    <td><ProductStoreBadges stores={item.stores} /></td>
+                    <td className="july-product-orders">{formatNumber(item.orders)}</td>
+                    <td>{formatCny(Math.round(item.revenueCny))}</td>
+                    <td className={item.grossMargin >= summary.grossMargin ? "metric-positive" : "metric-neutral"}>{formatPercent(item.grossMargin * 100, 2)}</td>
+                    <td className={item.lossRate > summary.lossRate ? "metric-risk" : "metric-neutral"}>{formatPercent(item.lossRate * 100, 2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article className="panel july-contribution-panel">
+          <div className="panel-heading july-product-panel-heading">
+            <div><h2>优质贡献品排行</h2><p>订单 &gt; 10，毛利高、退损低，按订单量排序</p></div>
+          </div>
+          <div className="july-contribution-list" aria-label="优质贡献品排行">
+            {contributionRankingByOrders.map((item, index) => (
+              <div className="july-contribution-row" key={item.id}>
+                <span className="july-contribution-rank">{index + 1}</span>
+                <div className="july-contribution-product">
+                  <small>{item.id}</small>
+                  <strong title={item.name}>{item.name}</strong>
+                </div>
+                <div className="july-contribution-metric"><span>订单量</span><strong>{formatNumber(item.orders)}</strong></div>
+                <div className="july-contribution-metric"><span>毛利率</span><strong>{formatPercent(item.grossMargin * 100, 2)}</strong></div>
+                <div className="july-contribution-metric"><span>退损率</span><strong>{formatPercent(item.lossRate * 100, 2)}</strong></div>
+                <span className="july-quality-tag">优质贡献</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="panel july-product-anomaly-panel">
+        <div className="panel-heading july-product-panel-heading">
+          <div><h2>异常产品清单（订单 &gt; 10）</h2><p>筛选口径：退损率 &gt; {formatPercent(summary.lossRate * 100, 2)} 且毛利率 &lt; {formatPercent(summary.grossMargin * 100, 2)}｜共 {anomalies.length} 个产品</p></div>
+        </div>
+        <div className="july-product-table-scroll july-anomaly-scroll" role="region" aria-label="异常产品清单" tabIndex={0}>
+          <table className="july-anomaly-table">
+            <thead><tr><th>产品ID</th><th>产品名称</th><th>店铺</th><th>订单量</th><th>销售额</th><th>毛利率</th><th>退损率</th><th>风险建议</th></tr></thead>
+            <tbody className="july-anomaly-body">
+              {anomalies.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.id}</td>
+                  <td className="july-product-name-cell"><span title={item.name}>{item.name}</span></td>
+                  <td><ProductStoreBadges stores={item.stores} /></td>
+                  <td className="july-product-orders">{formatNumber(item.orders)}</td>
+                  <td>{formatCny(Math.round(item.revenueCny))}</td>
+                  <td className="july-anomaly-margin">{formatPercent(item.grossMargin * 100, 2)}</td>
+                  <td className="metric-risk">{formatPercent(item.lossRate * 100, 2)}</td>
+                  <td><span className={`july-risk-tag ${item.severity}`}>{item.suggestion}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function LegacyProductAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: Exclude<MonthKey, "2026-07">; monthLabel: string }) {
+  const data = selectedMonth === "2026-06" ? juneProductAnalysis : selectedMonth === "2026-05" ? mayProductAnalysis : selectedMonth === "2026-04" ? aprilProductAnalysis : selectedMonth === "2026-03" ? marchProductAnalysis : selectedMonth === "2026-02" ? februaryProductAnalysis : januaryProductAnalysis;
   const productMatrixOption = useMemo<EChartsOption>(() => {
     const salesMax = Math.max(...data.matrixProducts.map((item) => item.sales), 1);
     return {
@@ -1129,9 +1535,209 @@ function ProductAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: Mon
 }
 
 function CategoryAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: MonthKey; monthLabel: string }) {
+  if (selectedMonth === "2026-07") return <JulyCategoryAnalysisPage />;
+  return <LegacyCategoryAnalysisPage selectedMonth={selectedMonth} monthLabel={monthLabel} />;
+}
+
+function JulyCategoryAnalysisPage() {
+  const { personalSummary, platformSummary } = julyCategoryAnalysis;
+  const categoryColors: Record<string, string> = {
+    居家百货: "#5470c6",
+    服饰: "#fac858",
+    电子电器: "#ee6666",
+    医药保健: "#73c0de",
+    美容个护: "#3ecf8e",
+    鞋类: "#fc8452",
+    钟表珠宝: "#a88be8",
+    包类: "#3ba272",
+    母婴玩具: "#f08a24",
+    其他: "#cfd4e4",
+  };
+  const personalPieRows = [
+    ...julyCategoryRows.slice(0, 5).map((item) => ({ name: item.name, value: item.personalOrders })),
+    { name: "其他", value: julyCategoryRows.slice(5).reduce((sum, item) => sum + item.personalOrders, 0) },
+  ];
+  const platformPieRows = [
+    ...["居家百货", "美容个护", "电子电器", "服饰", "医药保健"].map((name) => {
+      const row = julyCategoryRows.find((item) => item.name === name);
+      return { name, value: row?.platformOrders ?? 0 };
+    }),
+    {
+      name: "其他",
+      value: julyCategoryRows
+        .filter((item) => !["居家百货", "美容个护", "电子电器", "服饰", "医药保健"].includes(item.name))
+        .reduce((sum, item) => sum + item.platformOrders, 0),
+    },
+  ];
+  const pieLegendRows = personalPieRows.map((item) => ({
+    ...item,
+    share: item.value / personalSummary.orders,
+    color: categoryColors[item.name],
+  }));
+  const materialGapNames = ["居家百货", "服饰", "电子电器", "美容个护", "医药保健", "母婴玩具", "鞋类"];
+  const materialGapRows = materialGapNames.map((name) => julyCategoryRows.find((item) => item.name === name)).filter(Boolean) as typeof julyCategoryRows;
+
+  const donutOption = useMemo<EChartsOption>(() => ({
+    animationDuration: 650,
+    color: Object.values(categoryColors),
+    tooltip: {
+      trigger: "item",
+      formatter: (params) => {
+        const row = Array.isArray(params) ? params[0] : params;
+        return `${row.seriesName}<br/>${row.marker}${row.name}：${formatNumber(Number(row.value))} 单<br/>占比：${Number(row.percent).toFixed(2)}%`;
+      },
+    },
+    series: [
+      {
+        name: "个人出单占比",
+        type: "pie",
+        radius: ["38%", "60%"],
+        center: ["25%", "49%"],
+        avoidLabelOverlap: true,
+        label: { show: false },
+        labelLine: { show: false },
+        itemStyle: { borderColor: "#fff", borderWidth: 2 },
+        data: personalPieRows.map((item) => ({ ...item, itemStyle: { color: categoryColors[item.name] } })),
+      },
+      {
+        name: "平台出单占比",
+        type: "pie",
+        radius: ["38%", "60%"],
+        center: ["75%", "49%"],
+        avoidLabelOverlap: true,
+        label: { show: false },
+        labelLine: { show: false },
+        itemStyle: { borderColor: "#fff", borderWidth: 2 },
+        data: platformPieRows.map((item) => ({ ...item, itemStyle: { color: categoryColors[item.name] } })),
+      },
+    ],
+  }), [personalPieRows, platformPieRows]);
+
+  const gapOption = useMemo<EChartsOption>(() => ({
+    animationDuration: 650,
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "shadow" },
+      valueFormatter: (value) => `${Number(value) >= 0 ? "+" : ""}${Number(value).toFixed(2)}pp`,
+    },
+    grid: { left: 18, right: 42, top: 48, bottom: 16, containLabel: true },
+    xAxis: {
+      type: "value",
+      min: -20,
+      max: 20,
+      axisLabel: { color: "#8d91a5", fontSize: 11, formatter: "{value}pp" },
+      axisLine: { show: true, lineStyle: { color: "#7f8295" } },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "#ececf4", type: "dashed" } },
+    },
+    yAxis: {
+      type: "category",
+      inverse: true,
+      data: materialGapRows.map((item) => item.name),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: "#3f4358", fontSize: 12, fontWeight: 700 },
+    },
+    series: [
+      {
+        name: "个人更强",
+        type: "bar",
+        barWidth: 14,
+        barGap: "-100%",
+        data: materialGapRows.map((item) => item.orderShareGap > 0 ? {
+          value: item.orderShareGap * 100,
+          itemStyle: { color: item.name === "电子电器" ? "#20b8c2" : "#7655f6", borderRadius: [0, 8, 8, 0] },
+          label: { show: true, position: "right", color: "#454a68", fontSize: 11, formatter: `+${(item.orderShareGap * 100).toFixed(2)}pp` },
+        } : null),
+      },
+      {
+        name: "平台机会",
+        type: "bar",
+        barWidth: 14,
+        data: materialGapRows.map((item) => item.orderShareGap < 0 ? {
+          value: item.orderShareGap * 100,
+          itemStyle: { color: Math.abs(item.orderShareGap) >= 0.04 ? "#f04455" : "#f5ad34", borderRadius: [8, 0, 0, 8] },
+          label: { show: true, position: "left", color: "#454a68", fontSize: 11, formatter: `${(item.orderShareGap * 100).toFixed(2)}pp` },
+        } : null),
+      },
+    ],
+    graphic: [
+      { type: "text", left: "24%", top: 9, style: { text: "平台机会", fill: "#f04455", fontSize: 12, fontWeight: 800 } },
+      { type: "text", right: "22%", top: 9, style: { text: "个人更强", fill: "#7655f6", fontSize: 12, fontWeight: 800 } },
+    ],
+  }), [materialGapRows]);
+
+  const kpis = [
+    ["销售额", formatCnyCompact(personalSummary.revenueCny), Boxes, "cyan", `精确 ${formatCny(personalSummary.revenueCny)}`],
+    ["订单量", formatNumber(personalSummary.orders), ShoppingCart, "violet", "有效订单"],
+    ["商品销量", formatNumber(personalSummary.units), PackageSearch, "orange", "个人品类合计"],
+    ["毛利润", formatCny(personalSummary.grossProfitCny), WalletCards, "blue", "Excel合计行"],
+    ["毛利率", formatPercent(personalSummary.grossMargin * 100, 2), TrendingUp, "lime", `平台 ${formatPercent(platformSummary.grossMargin * 100, 2)}`],
+    ["退损率", formatPercent(personalSummary.lossRate * 100, 2), TrendingDown, "coral", `平台 ${formatPercent(platformSummary.lossRate * 100, 2)}`],
+  ] as const;
+
+  return (
+    <div className="content-canvas category-canvas july-category-canvas">
+      <section className="kpi-row july-category-kpis" aria-label="7月品类核心指标">
+        {kpis.map(([label, value, Icon, tone, note]) => (
+          <article className="kpi-card july-category-kpi" key={label}>
+            <span className={`kpi-icon ${tone}`}><Icon size={22} /></span>
+            <div><span>{label}</span><strong>{value}</strong><small>{note}</small></div>
+          </article>
+        ))}
+      </section>
+
+      <section className="july-category-chart-grid">
+        <article className="panel july-category-chart-card july-category-donut-card">
+          <div className="panel-heading july-category-panel-heading"><div><h2>个人&平台出单品类对比</h2><p>按有效订单量计算品类占比</p></div></div>
+          <div className="july-category-donut-stage">
+            <div className="july-category-donut-title personal">个人出单占比</div>
+            <div className="july-category-donut-title platform">平台出单占比</div>
+            <div className="july-category-donut-center personal"><strong>{formatNumber(personalSummary.orders)}</strong><span>总订单量</span></div>
+            <div className="july-category-donut-center platform"><strong>{formatNumber(platformSummary.orders)}</strong><span>总订单量</span></div>
+            <EChart option={donutOption} height={250} />
+          </div>
+          <div className="july-category-legend" aria-label="个人品类订单占比图例">
+            {pieLegendRows.map((item) => <span key={item.name}><i style={{ background: item.color }} />{item.name}<b>{formatPercent(item.share * 100, 1)}</b></span>)}
+          </div>
+        </article>
+
+        <article className="panel july-category-chart-card">
+          <div className="panel-heading july-category-panel-heading"><div><h2>品类订单占比差异</h2><p>个人订单占比 - 平台订单占比</p></div></div>
+          <EChart option={gapOption} height={280} />
+        </article>
+      </section>
+
+      <section className="panel july-category-detail-panel">
+        <div className="panel-heading july-category-panel-heading"><div><h2>品类经营明细与诊断</h2><p>个人品类表现、平台结构占比与经营建议</p></div><span className="data-source">7月 Excel 真实数据</span></div>
+        <div className="july-category-table-scroll" role="region" aria-label="品类经营明细与诊断" tabIndex={0}>
+          <table className="july-category-table">
+            <thead><tr><th>品类</th><th>个人订单</th><th>个人占比</th><th>平台占比</th><th>销售额</th><th>毛利率</th><th>退损率</th><th>诊断建议</th></tr></thead>
+            <tbody>
+              {julyCategoryRows.map((item) => (
+                <tr key={item.name}>
+                  <td>{item.name}</td>
+                  <td>{formatNumber(item.personalOrders)}</td>
+                  <td>{formatPercent(item.personalOrderShare * 100, 2)}</td>
+                  <td>{formatPercent(item.platformOrderShare * 100, 2)}</td>
+                  <td>{formatCny(item.revenueCny)}</td>
+                  <td>{formatPercent(item.grossMargin * 100, 2)}</td>
+                  <td className={item.lossRate > personalSummary.lossRate ? "july-category-risk-value" : ""}>{formatPercent(item.lossRate * 100, 2)}</td>
+                  <td><span className={`july-category-diagnosis ${item.diagnosisTone}`}>{item.diagnosis}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function LegacyCategoryAnalysisPage({ selectedMonth, monthLabel }: { selectedMonth: Exclude<MonthKey, "2026-07">; monthLabel: string }) {
   const [mode, setMode] = useState<"personal" | "platform">("personal");
   const [selectedCategory, setSelectedCategory] = useState("居家百货");
-  const categoryAnalysis = selectedMonth === "2026-05" ? mayCategoryAnalysis : selectedMonth === "2026-04" ? aprilCategoryAnalysis : selectedMonth === "2026-03" ? marchCategoryAnalysis : selectedMonth === "2026-02" ? februaryCategoryAnalysis : januaryCategoryAnalysis;
+  const categoryAnalysis = selectedMonth === "2026-06" ? juneCategoryAnalysis : selectedMonth === "2026-05" ? mayCategoryAnalysis : selectedMonth === "2026-04" ? aprilCategoryAnalysis : selectedMonth === "2026-03" ? marchCategoryAnalysis : selectedMonth === "2026-02" ? februaryCategoryAnalysis : januaryCategoryAnalysis;
   const dataset = categoryAnalysis[mode];
   const personalDataset = categoryAnalysis.personal;
   const platformDataset = categoryAnalysis.platform;

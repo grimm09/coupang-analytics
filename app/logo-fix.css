@@ -1,3 +1,1 @@
-.brand-logo-image {
-  content: url("/coupang-analytics/coupang-header-logo.svg");
-}
+/* Logo 地址由 <img src> 负责，避免本地与 GitHub Pages 的 basePath 冲突。 */

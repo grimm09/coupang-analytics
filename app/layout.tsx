@@ -7,6 +7,7 @@ import "./watermark.css";
 export const metadata: Metadata = {
   title: "Coupang 经营分析",
   description: "多店铺经营与广告数据分析平台",
+  icons: { icon: "/coupang-header-logo.svg" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
